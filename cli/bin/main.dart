@@ -1,38 +1,64 @@
 import 'dart:async';
-
-import 'package:cli/quotes.dart' as cli;
 import 'dart:io';
+import 'package:console/console.dart';
+import 'package:console/curses.dart';
 
-main(List<String> arguments) {
+import 'package:cli/quotes.dart' as quotes;
+import 'package:cli/ttl.dart' as ttl;
+
+
+main(List<String> arguments) async {
   
-  // Read the date of birth
-  var strDt = '19841112';
-  var dob = DateTime.parse(strDt);
-  
-  var daysOfLife = 30112.5; // The average lifespan of a male in Australia
-
-  // What's the time Mr Wolf?
-  var rightNow = DateTime.now();
-  var diffBirthToNow = rightNow.difference(dob);
-
-  // How long until death?
-  var dod = dob.add(Duration(days: daysOfLife.toInt()));
-  var diffRightNowToDeath = dod.difference(rightNow);
+  final strDt = await readInput("What's your DOB (yyyyMMdd): ");
 
   // Get a fresh quote each time the application starts
-  Map quote = cli.GetRandomQuote();
+  Map quote = quotes.GetRandom();
   
 
+  // Initialise the GUI
+  Console.init();
+  var window = MainWindow();
+  window.display();
+
+  // Rewrite the GUI content every second
   bool isStopped = false; // Stop the timer when this is set to true
-  Timer.periodic(Duration(seconds: 5), (timer) {
+  Timer.periodic(Duration(seconds: 1), (timer) {
     if (isStopped) {
       timer.cancel();
     }
-
-    // Output how long we have left, every minute
-    print('Time left in minutes: ${diffRightNowToDeath.inMinutes}');
-    print(quote["quote"] + " -- " + quote["author"]);
+    
+    ttl.TimeToLive t = ttl.TimeToLive(dob: strDt);
+    Console.centerCursor();
+    Console.write('${t.Remaining(strDt).inSeconds}');
+    Console.nextLine();
+    Console.write('${quote["quote"] + " -- " + quote["author"]}');
   });
   
+}
+
+
+class MainWindow extends Window {
+  
+  MainWindow() : super('Time-To-Live');
+
+  @override
+  void draw() {
+    super.draw();
+
+    Console.setTextColor(2); // Green
+    Console.centerCursor();
+    Console.moveToColumn(1);
+  
+  }
+
+  @override
+  void initialize() {
+    Keyboard.bindKeys(["q", "Q"]).listen((_) {
+      close();
+      Console.resetAll();
+      Console.eraseDisplay();
+      exit(0);
+    });
+  }
 }
 

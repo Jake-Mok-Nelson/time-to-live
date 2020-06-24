@@ -1,6 +1,6 @@
-
-
 import 'dart:math';
+
+// Handling our quotes
 
 List<Map<String, dynamic>> quotes = [
     {
@@ -29,7 +29,7 @@ List<Map<String, dynamic>> quotes = [
     }
 ];
 
-Map GetRandomQuote(){
+Map GetRandom(){
   final _random = new Random();
   
   // Get a random number between min and max
